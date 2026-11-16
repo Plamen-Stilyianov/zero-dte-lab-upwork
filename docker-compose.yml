@@ -1,0 +1,20 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    user: "10001:10001"
+    environment:
+      - APCA_API_KEY_ID=${APCA_API_KEY_ID:-}
+      - APCA_API_SECRET_KEY=${APCA_API_SECRET_KEY:-}
+      - ALPACA_STOCK_FEED=${ALPACA_STOCK_FEED:-sip}
+      - ALPACA_OPTION_FEED=${ALPACA_OPTION_FEED:-opra}
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    tmpfs:
+      - /tmp

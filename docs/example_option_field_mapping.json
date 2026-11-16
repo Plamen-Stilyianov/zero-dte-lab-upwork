@@ -1,0 +1,5 @@
+{
+  "option_symbol": "your_vendor_column_for_occ_symbol",
+  "delta_ts": "your_vendor_as_of_greek_timestamp",
+  "quote_ts": "your_vendor_as_of_nbbo_timestamp"
+}

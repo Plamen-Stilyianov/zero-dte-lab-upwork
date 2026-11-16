@@ -1,0 +1,55 @@
+{
+  "status": "synthetic_demo_only",
+  "tests_passed": 55,
+  "subtests_passed": 18,
+  "notes": "All stress results derive from intentionally fictional 12-session data. Do not interpret profit as trading skill.",
+  "scenarios": [
+    {
+      "name": "baseline",
+      "trades": 12,
+      "complete_tape": true,
+      "worst_trade_usd": 519.7
+    },
+    {
+      "name": "liquidity_crisis",
+      "trades": 12,
+      "complete_tape": true,
+      "worst_trade_usd": 292.7
+    },
+    {
+      "name": "price_gap",
+      "trades": 22,
+      "complete_tape": true,
+      "worst_trade_usd": -65.3
+    },
+    {
+      "name": "random_execution_degradation",
+      "trades": 11,
+      "complete_tape": false,
+      "worst_trade_usd": 61.08
+    },
+    {
+      "name": "delay_two_frames",
+      "trades": 12,
+      "complete_tape": true,
+      "worst_trade_usd": 500.7
+    },
+    {
+      "name": "force_exit_disconnect",
+      "trades": 12,
+      "complete_tape": false,
+      "worst_trade_usd": 540.7
+    }
+  ],
+  "audit_ledger_entries_verified": 57,
+  "audit_code_scan_review_findings": 0,
+  "unexecuted_tools": [
+    "ruff",
+    "vulture",
+    "bandit",
+    "optional LLM audit",
+    "NautilusTrader model adapter"
+  ],
+  "no_real_historical_option_tape": true,
+  "broker_order_execution_enabled": false
+}

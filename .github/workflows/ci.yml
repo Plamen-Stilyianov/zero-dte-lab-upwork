@@ -1,0 +1,20 @@
+name: CI checks (no broker access)
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e '.[audit]'
+      - run: python -m unittest discover -s tests -v
+      - run: python -m compileall -q src scripts tests
+      - run: ruff check src scripts tests
+      - run: bandit -ll -q -r src scripts
+      - run: vulture src scripts --min-confidence 80 || true  # advisory only
