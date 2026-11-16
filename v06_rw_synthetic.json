@@ -1,0 +1,76 @@
+{
+  "method": "romano_wolf_studentized_block_bootstrap",
+  "hypothesis": "H0: mean net daily return <= 0; H1: > 0",
+  "resampling_method": "stationary",
+  "iterations": 1999,
+  "block_length_sessions": 6,
+  "newey_west_lags": 6,
+  "alpha": 0.05,
+  "seed": 731,
+  "session_count": 260,
+  "supplied_strategy_count": 5,
+  "declared_trials": 5,
+  "entire_declared_family_supplied": true,
+  "input_sha256": "3c682d42dc35595218fdf6d8d15a5f44325d40726967e592bac6080df707a111",
+  "hypotheses": [
+    {
+      "strategy_id": "frozen_base",
+      "observed_t": 0.65296805,
+      "mean_daily_return": 0.000682876,
+      "unadjusted_bootstrap_p": 0.3,
+      "romano_wolf_stepdown_p": 0.3435,
+      "single_step_max_t_p": 0.386,
+      "holm_declared_family_p": 1.0,
+      "pass_rw_alpha": false
+    },
+    {
+      "strategy_id": "two_x_volume",
+      "observed_t": 0.94269525,
+      "mean_daily_return": 0.001075186,
+      "unadjusted_bootstrap_p": 0.222,
+      "romano_wolf_stepdown_p": 0.291,
+      "single_step_max_t_p": 0.305,
+      "holm_declared_family_p": 1.0,
+      "pass_rw_alpha": false
+    },
+    {
+      "strategy_id": "delta_075",
+      "observed_t": 1.11205588,
+      "mean_daily_return": 0.00135611,
+      "unadjusted_bootstrap_p": 0.2015,
+      "romano_wolf_stepdown_p": 0.2635,
+      "single_step_max_t_p": 0.2635,
+      "holm_declared_family_p": 1.0,
+      "pass_rw_alpha": false
+    },
+    {
+      "strategy_id": "new_ai_rule",
+      "observed_t": 0.90241944,
+      "mean_daily_return": 0.001254255,
+      "unadjusted_bootstrap_p": 0.2165,
+      "romano_wolf_stepdown_p": 0.291,
+      "single_step_max_t_p": 0.314,
+      "holm_declared_family_p": 1.0,
+      "pass_rw_alpha": false
+    },
+    {
+      "strategy_id": "noisy_variant",
+      "observed_t": 0.6419033,
+      "mean_daily_return": 0.001020551,
+      "unadjusted_bootstrap_p": 0.299,
+      "romano_wolf_stepdown_p": 0.3435,
+      "single_step_max_t_p": 0.388,
+      "holm_declared_family_p": 1.0,
+      "pass_rw_alpha": false
+    }
+  ],
+  "limitations": [
+    "Asymptotic FWER interpretation depends on valid stationary/mixing dependence and studentization.",
+    "Joint resamples preserve dependence across supplied strategies; no claim about unreported variants.",
+    "A declared_trials value larger than supplied_strategy_count makes RW p-values incomplete-family only.",
+    "Use fully reconciled daily net returns, including days with zero trades and all strategy attempts.",
+    "No test here proves point-in-time market data accuracy or execution feasibility.",
+    "An independent chronological holdout and forward paper trading are still required."
+  ],
+  "can_promote_to_live": false
+}
