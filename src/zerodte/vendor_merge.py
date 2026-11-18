@@ -7,7 +7,7 @@ names vary, so the option file may be mapped through an explicit JSON mapping.
 from __future__ import annotations
 
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 from pathlib import Path
 from typing import Iterator
@@ -36,12 +36,16 @@ def _rows(reader: csv.DictReader, kind: str) -> Iterator[dict]:
 
 
 def merge_vendor_csv(bars: str, options: str, out: str, provider: str,
-                     option_columns: dict[str, str] | None = None) -> dict:
+                     option_columns: dict[str, str] | None = None,
+                     bar_timestamp_convention: str = "bar_end") -> dict:
     """Stream-join matching completed minute bars and vendor option quote rows.
 
     'option_columns' maps canonical name -> source header name. It is intentionally
     explicit; undocumented vendor API formats must not be guessed.
     """
+    if bar_timestamp_convention not in ("bar_end", "bar_start"):
+        raise ValueError("bar_timestamp_convention must be 'bar_end' or 'bar_start'")
+    bar_shift = timedelta(minutes=1) if bar_timestamp_convention == "bar_start" else timedelta(0)
     from .greeks_quality import VENDORS
     if provider.casefold().strip() not in VENDORS:
         raise ValueError("Use a known source label for real historical vendor data")
@@ -71,9 +75,9 @@ def merge_vendor_csv(bars: str, options: str, out: str, provider: str,
             if option_last is not None and key < option_last:
                 raise ValueError("Options export not sorted by observation UTC timestamp and underlying")
             option_last = key
-            while bar is not None and _bar_key(bar) < key:
+            while bar is not None and (_bar_key(bar)[0] + bar_shift, _bar_key(bar)[1]) < key:
                 bar = next(bar_iterator, None)
-            if bar is None or _bar_key(bar) != key:
+            if bar is None or (_bar_key(bar)[0] + bar_shift, _bar_key(bar)[1]) != key:
                 raise ValueError(f"No completed underlying bar matching option observation {key}")
             if parse_ts(str(r["quote_ts"])) > key[0] or parse_ts(str(r["delta_ts"])) > key[0]:
                 raise ValueError("Future quote or delta timestamp — look-ahead contamination")

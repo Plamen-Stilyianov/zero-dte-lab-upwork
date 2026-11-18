@@ -189,6 +189,52 @@ class StrategyTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Training tape is incomplete"):
                 run_rolling("unused.csv", Settings(), 2, 1, 1, 1, tmpdir, embargo_sessions=0)
 
+    def test_vendor_merge_bar_start_shifts_availability_one_minute(self):
+        import csv
+        import tempfile
+        from pathlib import Path
+        from zerodte.vendor_merge import merge_vendor_csv
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            bars_csv = tmp / "bars.csv"
+            opts_csv = tmp / "opts.csv"
+            out_csv = tmp / "merged.csv"
+
+            with bars_csv.open("w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["ts", "underlying", "close", "high", "low", "volume"])
+                w.writerow(["2026-10-26T15:00:00Z", "SPY", "650.0", "650.2", "649.8", "1000"])
+
+            with opts_csv.open("w", newline="") as f:
+                w = csv.writer(f)
+                w.writerow(["ts", "underlying", "option_symbol", "expiry", "right", "strike",
+                            "bid", "ask", "option_volume", "quote_ts", "delta", "delta_ts"])
+                w.writerow(["2026-10-26T15:01:00Z", "SPY", "SPY261026C00650000", "2026-10-26", "C", "650.0",
+                            "2.45", "2.50", "50", "2026-10-26T15:01:00Z", "0.78", "2026-10-26T15:01:00Z"])
+
+            # Default bar_end rejects 15:00 bar for 15:01 quote; bar_start shifts 15:00 -> 15:01 availability
+            with self.assertRaisesRegex(ValueError, "No completed underlying bar"):
+                merge_vendor_csv(str(bars_csv), str(opts_csv), str(out_csv), "thetadata", bar_timestamp_convention="bar_end")
+
+            res = merge_vendor_csv(str(bars_csv), str(opts_csv), str(out_csv), "thetadata", bar_timestamp_convention="bar_start")
+            self.assertEqual(res["option_rows"], 1)
+
+    def test_report_distinguishes_normal_stop_from_gap_slippage(self):
+        import tempfile
+        from zerodte.report import make_report
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Normal stop: entry=2.52, exit=2.10 -> pnl = -43.30 (not gap slippage)
+            self.bot.trades.append(Trade("O1", "SPY", "C", "C:standard", T, T + timedelta(minutes=1),
+                                         2.52, 2.10, 1, -43.30, "stop_or_trailing", 0.78, 2.5))
+            # Gap stop: entry=2.52, exit=1.80 -> pnl = -73.30 (true gap slippage past -$43.30)
+            self.bot.trades.append(Trade("O2", "SPY", "C", "C:standard", T, T + timedelta(minutes=2),
+                                         2.52, 1.80, 1, -73.30, "stop_or_trailing", 0.78, 2.5))
+            summary = make_report(self.bot, tmpdir)
+            self.assertEqual(summary["stop_exits_losing_more_than_40usd"], 2)
+            self.assertEqual(summary["stop_exits_with_gap_slippage"], 1)
+
 
 class LearningTests(unittest.TestCase):
     def test_only_prior_dates_count(self):

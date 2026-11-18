@@ -45,6 +45,14 @@ def make_report(engine: StrategyEngine, output_dir: str, label: str = "backtest"
         "largest_trade_loss_usd": round(min(pnl), 2) if pnl else None,
         "stop_exits_losing_more_than_40usd": sum(
             t.reason == "stop_or_trailing" and t.pnl < -40 * t.qty for t in trades),
+        "stop_exits_with_gap_slippage": sum(
+            t.reason == "stop_or_trailing"
+            and t.pnl < -(
+                (engine.c.stop_premium + engine.c.entry_slippage + engine.c.exit_slippage) * 100
+                + 2 * engine.c.commission_per_contract_per_side
+            ) * t.qty - 0.01
+            for t in trades
+        ),
         "profit_factor": round(profit / loss, 3) if loss else None,
         "max_closed_trade_drawdown_usd": round(max_drawdown, 2),
         "standard_error_usd": round(stdev(pnl) / sqrt(len(pnl)), 2) if len(pnl) > 1 else None,
