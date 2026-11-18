@@ -9,13 +9,14 @@ from collections import defaultdict
 from datetime import date
 from math import sqrt
 from statistics import fmean, stdev
+from zoneinfo import ZoneInfo
 from .models import Trade
 
 
 def regime_report(trades: list[Trade], before: date | None = None) -> dict:
     groups: dict[str, list[float]] = defaultdict(list)
     for trade in trades:
-        if before is None or trade.exit_time.date() < before:
+        if before is None or trade.exit_time.astimezone(ZoneInfo("America/New_York")).date() < before:
             groups[trade.regime].append(trade.pnl / trade.qty)
     summary = {}
     for regime, pnl in groups.items():

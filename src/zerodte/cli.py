@@ -52,6 +52,7 @@ def main() -> None:
     m.add_argument("--options", required=True)
     m.add_argument("--provider", required=True, choices=("thetadata", "orats", "cboe", "cboe_datashop", "broker_vendor"))
     m.add_argument("--mapping", default=None)
+    m.add_argument("--bar-timestamp-convention", required=True, choices=("bar_end", "bar_start"))
     m.add_argument("--out", required=True)
     q = sub.add_parser("audit-tape", help="Check Greek provenance, as-of time and historical tape integrity")
     q.add_argument("--data", required=True)
@@ -187,7 +188,8 @@ def main() -> None:
     if args.command == "merge-tape":
         from .vendor_merge import load_mapping, merge_vendor_csv
         print(json.dumps(merge_vendor_csv(args.bars, args.options, args.out,
-                                         args.provider, load_mapping(args.mapping)), indent=2))
+                                         args.provider, load_mapping(args.mapping),
+                                         bar_timestamp_convention=args.bar_timestamp_convention), indent=2))
         return
     if args.command == "verify-ledger":
         from .audit_ledger import verify_ledger

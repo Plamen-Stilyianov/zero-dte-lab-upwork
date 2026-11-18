@@ -48,7 +48,7 @@ def make_report(engine: StrategyEngine, output_dir: str, label: str = "backtest"
         "stop_exits_with_gap_slippage": sum(
             t.reason == "stop_or_trailing"
             and t.pnl < -(
-                (engine.c.stop_premium + engine.c.entry_slippage + engine.c.exit_slippage) * 100
+                (engine.c.stop_premium + engine.c.exit_slippage) * 100
                 + 2 * engine.c.commission_per_contract_per_side
             ) * t.qty - 0.01
             for t in trades

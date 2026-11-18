@@ -27,7 +27,7 @@ Research-only 0DTE options simulation and statistical validation prototype. Neve
 - `src/zerodte/statistical_audit.py` & `statistics.py` — Stationary/circular bootstrap, Holm/BH corrections, PSR/DSR diagnostics
 - `src/zerodte/audit_ledger.py`, `audit_replay.py`, `source_audit.py` — SHA-256 decision ledger and AST leakage scanner
 - `src/zerodte/adversarial.py`, `stress.py`, `paper_watch.py`, `alpaca.py` — Fault injection, cost stress, and read-only Alpaca watcher
-- `tests/` — Deterministic unit tests (`test_core.py`, `test_quality_v02.py`, `test_audit_v03.py`, `test_free_data_v04.py`, `test_statistical_audit_v05.py`, `test_v06_cpcv_rw.py`, `test_adversarial.py`, `test_nautilus_reference.py`, `test_paper_watch.py`)
+- `tests/` — Deterministic unit tests (`test_core.py`, `test_quality_v02.py`, `test_audit_v03.py`, `test_free_data_v04.py`, `test_statistical_audit_v05.py`, `test_v06_cpcv_rw.py`, `test_adversarial.py`, `test_nautilus_reference.py`)
 
 ## Domain Glossary
 - **CPCV:** Combinatorial Purged Cross-Validation (`cpcv.py`)

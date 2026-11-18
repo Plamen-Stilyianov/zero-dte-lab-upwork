@@ -25,6 +25,7 @@ class Settings:
     max_spread: float = 0.12
     min_option_volume: int = 10
     max_quote_age_seconds: int = 90
+    max_bar_gap_seconds: int = 90
     min_entry_time: str = "09:50"
     last_entry_time: str = "15:00"
     force_exit_time: str = "15:20"

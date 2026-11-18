@@ -228,12 +228,30 @@ class StrategyTests(unittest.TestCase):
             # Normal stop: entry=2.52, exit=2.10 -> pnl = -43.30 (not gap slippage)
             self.bot.trades.append(Trade("O1", "SPY", "C", "C:standard", T, T + timedelta(minutes=1),
                                          2.52, 2.10, 1, -43.30, "stop_or_trailing", 0.78, 2.5))
-            # Gap stop: entry=2.52, exit=1.80 -> pnl = -73.30 (true gap slippage past -$43.30)
+            # Small gap stop: entry=2.52, exit=2.09 -> pnl = -44.30 ($1 gap slippage past -$43.30)
             self.bot.trades.append(Trade("O2", "SPY", "C", "C:standard", T, T + timedelta(minutes=2),
-                                         2.52, 1.80, 1, -73.30, "stop_or_trailing", 0.78, 2.5))
+                                         2.52, 2.09, 1, -44.30, "stop_or_trailing", 0.78, 2.5))
             summary = make_report(self.bot, tmpdir)
             self.assertEqual(summary["stop_exits_losing_more_than_40usd"], 2)
             self.assertEqual(summary["stop_exits_with_gap_slippage"], 1)
+
+    def test_intraday_bar_gap_expires_pending_signal_and_marks_incomplete(self):
+        self.bot.on_frame(frame(T))
+        self.bot.pending["SPY"] = self.sig
+        self.bot.pending_bars_remaining["SPY"] = 1
+        # 5-minute intraday gap (> max_bar_gap_seconds=90) drops pending signal and flags incomplete
+        self.bot.on_frame(frame(T + timedelta(minutes=5)))
+        self.assertIsNone(self.bot.position)
+        self.assertNotIn("SPY", self.bot.pending)
+        self.assertTrue(self.bot.incomplete)
+
+    def test_regime_report_uses_new_york_date(self):
+        from zerodte.learn import regime_report
+        # 01:00 UTC on Oct 27 is 21:00 ET on Oct 26 (still Oct 26 in New York)
+        late_utc = datetime(2026, 10, 27, 1, 0, tzinfo=timezone.utc)
+        trade = Trade("O", "SPY", "C", "C:standard", late_utc - timedelta(minutes=5),
+                      late_utc, 2.0, 2.5, 1, 48.7, "forced_intraday_exit", 0.78, 2.1)
+        self.assertEqual(regime_report([trade], before=date(2026, 10, 27))["C:standard"]["n"], 1)
 
 
 class LearningTests(unittest.TestCase):

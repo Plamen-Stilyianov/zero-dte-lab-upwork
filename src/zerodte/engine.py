@@ -170,17 +170,22 @@ class StrategyEngine:
         if b.symbol not in self.trends:
             return
         day = self._local_day(b.ts)
-        if b.symbol in self.last_ts and b.ts <= self.last_ts[b.symbol]:
+        prev_ts = self.last_ts.get(b.symbol)
+        if prev_ts is not None and b.ts <= prev_ts:
             raise ValueError("Each symbol must have strictly increasing timestamps")
         self.last_ts[b.symbol] = b.ts
         if self.last_day.get(b.symbol) != day:
-            if (self.position is not None and self.position.underlying == b.symbol
-                    and self.last_position_quote is not None and self.last_position_ts is not None):
+            if self.position is not None and self.position.underlying == b.symbol:
                 self.incomplete = True
-                self._exit(self.last_position_quote, self.last_position_ts, "day_rollover_incomplete_close")
+                if self.last_position_quote is not None and self.last_position_ts is not None:
+                    self._exit(self.last_position_quote, self.last_position_ts, "day_rollover_incomplete_close")
             self.pending.pop(b.symbol, None)
             self.pending_bars_remaining.pop(b.symbol, None)
             self.last_day[b.symbol] = day
+        elif prev_ts is not None and (b.ts - prev_ts).total_seconds() > self.c.max_bar_gap_seconds:
+            self.incomplete = True
+            self.pending.pop(b.symbol, None)
+            self.pending_bars_remaining.pop(b.symbol, None)
         self._handle_position(frame)
         # Deliberately enter on NEXT frame after detecting a completed bar signal.
         pending = self.pending.get(b.symbol)
