@@ -13,3 +13,5 @@ results/*
 !results/.gitkeep
 *.db
 *.db-*
+*.egg-info/
+src/*.egg-info/

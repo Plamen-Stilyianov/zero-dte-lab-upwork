@@ -68,7 +68,7 @@ live DoltHub HTTP response or QuantConnect backtest in this environment.**
 
 **Status: research prototype, NOT a live automated trading system.**
 
-A runnable Python 3.11+ project for studying long 0DTE calls and puts with 2× underlying minute-volume triggers, a minimum absolute delta of 0.75, and a 40-cent option-premium stop. Supports bid/ask historical replay, DuckDB/Parquet streaming, a frozen chronological walk-forward validation, a local paper account simulator, a 24/7 **read-only** Alpaca market-data watcher for DigitalOcean, and scheduled static/LLM code audits. **No Alpaca order creation, order modification, or live brokerage trades are implemented.**
+A runnable Python 3.14+ project for studying long 0DTE calls and puts with 2× underlying minute-volume triggers, a minimum absolute delta of 0.75, and a 40-cent option-premium stop. Supports bid/ask historical replay, DuckDB/Parquet streaming, a frozen chronological walk-forward validation, a local paper account simulator, a 24/7 **read-only** Alpaca market-data watcher for DigitalOcean, and scheduled static/LLM code audits. **No Alpaca order creation, order modification, or live brokerage trades are implemented.**
 
 This is an engineering starting point. **No strategy profitability, positive edge, low loss frequency, or fixed maximum loss is established.**
 
@@ -111,7 +111,7 @@ Detailed guides: [source review](docs/SOURCE_EVALUATION.md), [input contract](do
 ## Quick start (no API keys needed)
 
 ```bash
-python3.12 -m venv .venv
+python3.14 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e '.[all]'
 python scripts/make_demo.py

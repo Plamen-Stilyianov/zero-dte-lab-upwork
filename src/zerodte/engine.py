@@ -22,6 +22,8 @@ class StrategyEngine:
         self.pending: dict[str, Signal] = {}
         self.pending_bars_remaining: dict[str, int] = {}
         self.position: Position | None = None
+        self.last_position_quote: OptionQuote | None = None
+        self.last_position_ts: datetime | None = None
         self.trades: list[Trade] = []
         self.events: list[str] = []
         self.daily_realized: dict[str, Decimal] = defaultdict(lambda: Decimal("0.00"))
@@ -48,7 +50,7 @@ class StrategyEngine:
         p = self.position
         if p is None:
             raise RuntimeError("No position")
-        fill = max(0.01, q.bid - self.c.exit_slippage)
+        fill = 0.0 if q.bid <= 0 else max(0.01, q.bid - self.c.exit_slippage)
         pnl_amount = ((Decimal(str(fill)) - Decimal(str(p.entry_price))) * Decimal("100")
                       - 2 * Decimal(str(self.c.commission_per_contract_per_side))) * p.qty
         pnl = float(pnl_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
@@ -59,6 +61,8 @@ class StrategyEngine:
         self.daily_realized[self._local_day(ts)] += Decimal(str(pnl))
         self.events.append(f"{ts.isoformat()} EXIT {p.option} {reason} pnl={pnl:+.2f}")
         self.position = None
+        self.last_position_quote = None
+        self.last_position_ts = None
         return trade
 
     def _handle_position(self, frame: Frame) -> None:
@@ -71,6 +75,8 @@ class StrategyEngine:
                 self.incomplete = True
                 self.events.append(f"{frame.bar.ts.isoformat()} NO VALID QUOTE FOR FORCE EXIT")
             return
+        self.last_position_quote = q
+        self.last_position_ts = frame.bar.ts
         if q.bid <= p.current_stop:
             self._exit(q, frame.bar.ts, "stop_or_trailing")
             return
@@ -98,7 +104,7 @@ class StrategyEngine:
             return False
         if (q.right == "C" and q.delta <= 0) or (q.right == "P" and q.delta >= 0):
             return False
-        if q.volume < self.c.min_option_volume or q.ask - q.bid > self.c.max_spread:
+        if q.bid <= 0 or q.volume < self.c.min_option_volume or q.ask - q.bid > self.c.max_spread:
             return False
         return True
 
@@ -153,6 +159,8 @@ class StrategyEngine:
         self.position = Position(q.symbol, q.underlying, q.right, signal.regime,
                                  ts, entry, qty, max(0.01, entry - self.c.stop_premium),
                                  q.bid, signal.volume_ratio, q.delta)
+        self.last_position_quote = q
+        self.last_position_ts = ts
         self.daily_counts[day] += 1
         self.events.append(f"{ts.isoformat()} ENTRY {q.symbol} {signal.regime} qty={qty} ask={entry:.2f}")
         return True
@@ -166,6 +174,10 @@ class StrategyEngine:
             raise ValueError("Each symbol must have strictly increasing timestamps")
         self.last_ts[b.symbol] = b.ts
         if self.last_day.get(b.symbol) != day:
+            if (self.position is not None and self.position.underlying == b.symbol
+                    and self.last_position_quote is not None and self.last_position_ts is not None):
+                self.incomplete = True
+                self._exit(self.last_position_quote, self.last_position_ts, "day_rollover_incomplete_close")
             self.pending.pop(b.symbol, None)
             self.pending_bars_remaining.pop(b.symbol, None)
             self.last_day[b.symbol] = day

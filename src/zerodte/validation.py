@@ -37,6 +37,9 @@ def run_holdout(data: str, c: Settings, train_end: date, val_end: date,
             seen["train"].add(day)
         elif day <= val_end:
             if permitted is None:
+                train.finalize()
+                if train.incomplete:
+                    raise ValueError("Training tape is incomplete; cannot freeze regime allowlist")
                 # Persist frozen allowlist; exclude any same-day/training-future feedback.
                 stats = regime_report(train.trades)
                 permitted = {
@@ -64,7 +67,8 @@ def run_holdout(data: str, c: Settings, train_end: date, val_end: date,
     path.mkdir(parents=True, exist_ok=True)
     summaries = {}
     for name, engine in engines.items():
-        engine.finalize()
+        if name != "train":
+            engine.finalize()
         summaries[name] = make_report(engine, str(path / name), label=name)
     nval = summaries["validation_frozen"]["trades"]
     # Promotion must be manual, and a no-trade system cannot be claimed as successful.

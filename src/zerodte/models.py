@@ -63,7 +63,7 @@ class OptionQuote:
         if self.right not in ("C", "P") or not self.symbol or not self.underlying:
             raise ValueError("Invalid contract")
         if (not all(valid_number(x) for x in (self.bid, self.ask, self.strike))
-                or self.bid <= 0 or self.ask < self.bid or self.strike <= 0
+                or self.bid < 0 or self.ask <= 0 or self.ask < self.bid or self.strike <= 0
                 or self.volume < 0 or self.multiplier != 100):
             raise ValueError("Invalid quote; nonstandard multipliers are rejected")
         if self.delta is not None and (not valid_number(self.delta) or not -1 <= self.delta <= 1):

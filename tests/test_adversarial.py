@@ -22,7 +22,7 @@ class AdversarialTests(unittest.TestCase):
                     Settings(**{field: bad})
 
     def test_bad_quotes_rejected(self):
-        for bid, ask in ((nan, 3.1), (3, nan), (3, 2), (-1, 2), (0, 1), (inf, inf)):
+        for bid, ask in ((nan, 3.1), (3, nan), (3, 2), (-1, 2), (0, 0), (inf, inf)):
             with self.subTest(bid=bid, ask=ask), self.assertRaises(ValueError):
                 OptionQuote(T, "O", "SPY", date(2026, 10, 26), "C", 649, bid, ask, .8, 20)
 

@@ -97,6 +97,9 @@ def run_rolling(data: str, c: Settings, train_sessions: int, validation_sessions
                 train.on_frame(frame)
             elif fold.val_start <= day <= fold.val_end:
                 if allowlist is None:
+                    train.finalize()
+                    if train.incomplete:
+                        raise ValueError("Training tape is incomplete; cannot freeze regime allowlist")
                     # Train is fully in the past and all later sessions are excluded.
                     stats = regime_report(train.trades)
                     allowlist = {name: (stat["n"] >= c.learning_min_trades
@@ -113,7 +116,7 @@ def run_rolling(data: str, c: Settings, train_sessions: int, validation_sessions
             if day > fold.test_end:
                 break
         folder = output / f"fold_{fold.index:02d}"
-        for strategy in (train, validation, test, test_baseline):
+        for strategy in (validation, test, test_baseline):
             strategy.finalize()
         report = {
             "fold": fold.index,
